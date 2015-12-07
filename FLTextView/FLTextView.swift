@@ -260,8 +260,8 @@ public class FLTextView: UITextView {
         
         if attributedText.string == frozenText && isAttributedStringNeed {
             let attributedString = NSMutableAttributedString(string: "")
-            let attrFont: UIFont = (frozenPrefixFont ?? font) ?? defaultTextFont
-            let attrColor: UIColor = (frozenPrefixColor ?? textColor) ?? defaultTextColor
+            let attrFont = (frozenPrefixFont ?? font) ?? defaultTextFont
+            let attrColor = (frozenPrefixColor ?? textColor) ?? defaultTextColor
             let attrs = [NSFontAttributeName : attrFont, NSForegroundColorAttributeName: attrColor, NSParagraphStyleAttributeName : paragraphStyle]
             let frozenAttributedString = NSAttributedString(string:frozenText, attributes:attrs)
             attributedString.appendAttributedString(frozenAttributedString)
