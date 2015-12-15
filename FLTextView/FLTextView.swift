@@ -258,12 +258,13 @@ public class FLTextView: UITextView {
         
         let isAttributedStringNeed = (frozenPrefixColor != nil || frozenPrefixFont != nil)
         
+        let attrForzenFont = (frozenPrefixFont ?? font) ?? defaultTextFont
+        let attrForzenColor = (frozenPrefixColor ?? textColor) ?? defaultTextColor
+        let attrsFrozen = [NSFontAttributeName : attrForzenFont, NSForegroundColorAttributeName: attrForzenColor, NSParagraphStyleAttributeName : paragraphStyle]
+        
         if attributedText.string == frozenText && isAttributedStringNeed {
             let attributedString = NSMutableAttributedString(string: "")
-            let attrFont = (frozenPrefixFont ?? font) ?? defaultTextFont
-            let attrColor = (frozenPrefixColor ?? textColor) ?? defaultTextColor
-            let attrs = [NSFontAttributeName : attrFont, NSForegroundColorAttributeName: attrColor, NSParagraphStyleAttributeName : paragraphStyle]
-            let frozenAttributedString = NSAttributedString(string:frozenText, attributes:attrs)
+            let frozenAttributedString = NSAttributedString(string:frozenText, attributes:attrsFrozen)
             attributedString.appendAttributedString(frozenAttributedString)
             text = nil
             attributedText = attributedString
@@ -272,6 +273,10 @@ public class FLTextView: UITextView {
             let attrs = [NSFontAttributeName :stroredTextFont ?? defaultTextFont, NSForegroundColorAttributeName: stroredTextColor ?? defaultTextColor, NSParagraphStyleAttributeName : paragraphStyle]
             let rangeOfNonFrozenText = NSMakeRange(frozenText.characters.count, mutableAttributedString.string.characters.count - frozenText.characters.count)
             mutableAttributedString.addAttributes(attrs, range: rangeOfNonFrozenText)
+            
+            let rangeOfFrozenText =  NSMakeRange(0, frozenText.characters.count)
+            mutableAttributedString.addAttributes(attrsFrozen, range: rangeOfFrozenText)
+            
             attributedText = mutableAttributedString
         }
     }
@@ -322,11 +327,11 @@ extension FLTextView: UITextViewDelegate {
     }
     
     public func textViewDidChange(textView: UITextView) {
-        applyStylesForFrozenText()
         showPlaceholderViewIfNeeded()
         if isExternalTextViewDelegateRespondsToSelector("textViewDidChange:") {
             externalTextViewDelegate!.textViewDidChange!(textView)
         }
+        applyStylesForFrozenText()
     }
     
     public func textViewShouldBeginEditing(textView: UITextView) -> Bool {

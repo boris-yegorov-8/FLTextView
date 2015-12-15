@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="Nf6-R1-N5g">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9531" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="Nf6-R1-N5g">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
@@ -539,7 +539,7 @@
         <!--Frozen text with big placeholder-->
         <scene sceneID="qfI-el-Du7">
             <objects>
-                <viewController title="Frozen text with big placeholder" id="eh7-KG-jg2" sceneMemberID="viewController">
+                <viewController title="Frozen text with big placeholder" id="eh7-KG-jg2" customClass="ViewController" customModule="FLTextView_Example" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="9aV-yp-PkA"/>
                         <viewControllerLayoutGuide type="bottom" id="k8f-gr-47W"/>
@@ -577,6 +577,9 @@
                     </view>
                     <nil key="simulatedStatusBarMetrics"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
+                    <connections>
+                        <outlet property="textView" destination="GQt-Az-5x9" id="gvm-mG-5OT"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="v1D-fQ-W8N" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
