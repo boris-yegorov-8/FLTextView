@@ -174,10 +174,20 @@ public class FLTextView: UITextView {
         setupPlaceholderView()
     }
     
+    public override func becomeFirstResponder() -> Bool {
+        if isShowingPlaceholder && placeholderView.isFirstResponder() {
+            return false
+        } else {
+            applyStylesForFrozenText()
+            return super.becomeFirstResponder()
+        }
+        
+    }
+    
     deinit {
         canResetTextViewDelegate = true
     }
-
+    
     
     // MARK: - UIView
     
@@ -200,11 +210,11 @@ public class FLTextView: UITextView {
         placeholderView.backgroundColor = UIColor.clearColor()
         placeholderView.textColor = UIColor(white: 0.7, alpha: 1.0)
         
-        placeholderView.editable = false
+        placeholderView.editable = true
         placeholderView.scrollEnabled = true
         placeholderView.userInteractionEnabled = false
         placeholderView.isAccessibilityElement = false
-        placeholderView.selectable = false
+        placeholderView.selectable = true
         
         showPlaceholderViewIfNeeded()
         
@@ -237,8 +247,18 @@ public class FLTextView: UITextView {
             }
             
             contentInset = UIEdgeInsetsMake(0.0, 0.0, frame.height - contentSize.height, 0.0)
+            moveCursorAfterFrozenTextIfPossible()
+            
         } else {
             contentInset = UIEdgeInsetsZero
+        }
+    }
+    
+    private func moveCursorAfterFrozenTextIfPossible() {
+        if let frozenText = frozenPrefix {
+            placeholderView.userInteractionEnabled = true
+            placeholderView.becomeFirstResponder()
+            placeholderView.selectedRange = NSMakeRange(frozenText.characters.count, 0)
         }
     }
     
@@ -251,7 +271,7 @@ public class FLTextView: UITextView {
     // MARK: - Frozen text
     
     private func applyStylesForFrozenText() {
-        guard let frozenText = frozenPrefix else { return }
+        guard let frozenText = frozenPrefix, attrText = attributedText where attributedText.string.characters.count > 0 else { return }
         
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = textAlignment
@@ -262,14 +282,14 @@ public class FLTextView: UITextView {
         let attrForzenColor = (frozenPrefixColor ?? textColor) ?? defaultTextColor
         let attrsFrozen = [NSFontAttributeName : attrForzenFont, NSForegroundColorAttributeName: attrForzenColor, NSParagraphStyleAttributeName : paragraphStyle]
         
-        if attributedText.string == frozenText && isAttributedStringNeed {
+        if attrText.string == frozenText && isAttributedStringNeed {
             let attributedString = NSMutableAttributedString(string: "")
             let frozenAttributedString = NSAttributedString(string:frozenText, attributes:attrsFrozen)
             attributedString.appendAttributedString(frozenAttributedString)
             text = nil
             attributedText = attributedString
         } else if isAttributedStringNeed {
-            let mutableAttributedString = attributedText.mutableCopy() as! NSMutableAttributedString
+            let mutableAttributedString = attrText.mutableCopy() as! NSMutableAttributedString
             let attrs = [NSFontAttributeName :stroredTextFont ?? defaultTextFont, NSForegroundColorAttributeName: stroredTextColor ?? defaultTextColor, NSParagraphStyleAttributeName : paragraphStyle]
             let rangeOfNonFrozenText = NSMakeRange(frozenText.characters.count, mutableAttributedString.string.characters.count - frozenText.characters.count)
             mutableAttributedString.addAttributes(attrs, range: rangeOfNonFrozenText)
@@ -297,14 +317,29 @@ public class FLTextView: UITextView {
 extension FLTextView: UITextViewDelegate {
     
     public func textView(textView: UITextView, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
+        
+        let isDeletedSymbol = range.length == 1 && text == ""
+        
         guard let frozenText = frozenPrefix where textView != placeholderView else {
+            
+            if textView == placeholderView {
+                if isDeletedSymbol { return false }
+                
+                if let frozenText = frozenPrefix where placeholderView.isFirstResponder() {
+                    placeholderView.userInteractionEnabled = false
+                    placeholderView.resignFirstResponder()
+                    self.text = frozenText + text
+                    becomeFirstResponder()
+                    return false
+                }
+            }
+            
             return isExternalTextViewDelegateRespondsToSelector("textView:shouldChangeTextInRange:replacementText:") ? externalTextViewDelegate!.textView!(textView, shouldChangeTextInRange: range, replacementText: text) : true
         }
         
         let protectedRange = NSMakeRange(0, frozenText.characters.count)
         let intersection = NSIntersectionRange(protectedRange, range)
         
-        let isDeletedSymbol = range.length == 1 && text == ""
         let shouldClearFrozenText = isDeletedSymbol && (textView.text.characters.count == frozenText.characters.count + 1) && intersection.location == 0 && intersection.length == 0
         
         if shouldClearFrozenText {
