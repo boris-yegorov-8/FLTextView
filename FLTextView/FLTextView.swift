@@ -390,7 +390,12 @@ extension FLTextView: UITextViewDelegate {
     }
     
     public func textViewDidChangeSelection(textView: UITextView) {
-        guard isExternalTextViewDelegateRespondsToSelector("textViewDidChangeSelection:") else { return }
+        guard textView != placeholderView && isExternalTextViewDelegateRespondsToSelector("textViewDidChangeSelection:") else {
+            if let frozenText = frozenPrefix where textView == placeholderView && !NSEqualRanges(textView.selectedRange, NSMakeRange(frozenText.characters.count, 0)) {
+                moveCursorAfterFrozenTextIfPossible()
+            }
+            return
+        }
         externalTextViewDelegate!.textViewDidChangeSelection!(textView)
     }
     
