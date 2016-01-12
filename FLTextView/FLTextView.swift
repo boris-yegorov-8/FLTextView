@@ -42,6 +42,13 @@ public class FLTextView: UITextView {
     //Stored default text coor because it's resets after change attributedString
     private var stroredTextColor: UIColor?
     
+    //Stored placeholder text for preventing editing
+    private var stroredPlaceholderText: String?
+    
+    //Stored placeholder attributed text for preventing editing
+    private var stroredAttrPlaceholderText: NSAttributedString?
+    
+    
     //Default text color
     private let defaultTextColor = UIColor.blackColor()
     
@@ -78,7 +85,8 @@ public class FLTextView: UITextView {
             return placeholderView.text
         }
         set {
-            placeholderView.text = newValue
+            stroredPlaceholderText = newValue
+            placeholderView.text = stroredPlaceholderText
             setNeedsLayout()
         }
     }
@@ -89,7 +97,8 @@ public class FLTextView: UITextView {
             return placeholderView.attributedText
         }
         set {
-            placeholderView.attributedText = newValue
+            stroredAttrPlaceholderText = newValue
+            placeholderView.attributedText = stroredAttrPlaceholderText
             setNeedsLayout()
         }
     }
@@ -362,6 +371,14 @@ extension FLTextView: UITextViewDelegate {
     }
     
     public func textViewDidChange(textView: UITextView) {
+        guard textView != placeholderView else {
+            if stroredAttrPlaceholderText != nil && textView.attributedText != stroredAttrPlaceholderText {
+                textView.attributedText = stroredAttrPlaceholderText
+            } else if stroredPlaceholderText != nil && textView.text != stroredPlaceholderText {
+                textView.text = stroredPlaceholderText
+            }
+            return
+        }
         showPlaceholderViewIfNeeded()
         if isExternalTextViewDelegateRespondsToSelector("textViewDidChange:") {
             externalTextViewDelegate!.textViewDidChange!(textView)
