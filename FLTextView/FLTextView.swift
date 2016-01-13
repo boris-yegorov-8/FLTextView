@@ -339,6 +339,9 @@ extension FLTextView: UITextViewDelegate {
                     placeholderView.resignFirstResponder()
                     self.text = frozenText + text
                     becomeFirstResponder()
+                    if isExternalTextViewDelegateRespondsToSelector("textViewDidChange:") {
+                        externalTextViewDelegate!.textViewDidChange!(self)
+                    }
                     return false
                 }
             }
