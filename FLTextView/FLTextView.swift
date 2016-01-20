@@ -280,7 +280,7 @@ public class FLTextView: UITextView {
     // MARK: - Frozen text
     
     private func applyStylesForFrozenText() {
-        guard let frozenText = frozenPrefix, attrText = attributedText where attributedText.string.characters.count > 0 else { return }
+        guard let frozenText = frozenPrefix, attrText = attributedText where attributedText.length > 0 else { return }
         
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = textAlignment
@@ -300,7 +300,7 @@ public class FLTextView: UITextView {
         } else if isAttributedStringNeed {
             let mutableAttributedString = attrText.mutableCopy() as! NSMutableAttributedString
             let attrs = [NSFontAttributeName :stroredTextFont ?? defaultTextFont, NSForegroundColorAttributeName: stroredTextColor ?? defaultTextColor, NSParagraphStyleAttributeName : paragraphStyle]
-            let rangeOfNonFrozenText = NSMakeRange(frozenText.characters.count, mutableAttributedString.string.characters.count - frozenText.characters.count)
+            let rangeOfNonFrozenText = NSMakeRange(frozenText.characters.count, mutableAttributedString.length - frozenText.characters.count)
             mutableAttributedString.addAttributes(attrs, range: rangeOfNonFrozenText)
             
             let rangeOfFrozenText =  NSMakeRange(0, frozenText.characters.count)
