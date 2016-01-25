@@ -108,6 +108,27 @@ public class FLTextView: UITextView {
         return placeholderView.superview != nil
     }
     
+    public func defaultPlaceholderAttributedStringForFrozenPrefix() -> NSAttributedString? {
+        
+        guard let frozenText = frozenPrefix, placeholderText = placeholder where placeholderText.characters.count > 0  else { return nil}
+        
+        let attributedString = NSMutableAttributedString(string: placeholderText)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = textAlignment
+        let frozenPrefixColorValue = frozenPrefixColor ?? placeholderTextColor ?? textColor ?? UIColor.grayColor()
+        let attrForFrozen = [NSForegroundColorAttributeName: frozenPrefixColorValue, NSFontAttributeName: font!, NSParagraphStyleAttributeName: paragraphStyle]
+        let nonFrozenTextColor = placeholderTextColor ?? frozenPrefixColorValue
+        let attrForNonFrozen = [NSForegroundColorAttributeName: nonFrozenTextColor, NSFontAttributeName: font!, NSParagraphStyleAttributeName: paragraphStyle]
+        
+        let rangeOfFrozenText =  NSMakeRange(0, frozenText.characters.count)
+        attributedString.addAttributes(attrForFrozen, range: rangeOfFrozenText)
+        
+        let rangeOfNonFrozenText = NSMakeRange(frozenText.characters.count, placeholderText.characters.count - frozenText.characters.count)
+        attributedString.addAttributes(attrForNonFrozen, range: rangeOfNonFrozenText)
+        
+        return attributedString
+    }
+    
     
     // MARK: - Delegate
     
@@ -134,12 +155,18 @@ public class FLTextView: UITextView {
     
     override public var text: String! {
         didSet {
+            if oldValue.isEmpty {
+                applyStylesForFrozenText()
+            }
             showPlaceholderViewIfNeeded()
         }
     }
     
     override public var attributedText: NSAttributedString! {
         didSet {
+            if oldValue.string.isEmpty {
+                applyStylesForFrozenText()
+            }
             showPlaceholderViewIfNeeded()
         }
     }
@@ -305,7 +332,6 @@ public class FLTextView: UITextView {
             
             let rangeOfFrozenText =  NSMakeRange(0, frozenText.characters.count)
             mutableAttributedString.addAttributes(attrsFrozen, range: rangeOfFrozenText)
-            
             attributedText = mutableAttributedString
         }
     }
@@ -356,6 +382,7 @@ extension FLTextView: UITextViewDelegate {
         
         if shouldClearFrozenText {
             textView.text = text
+            textViewDidChange(textView)
             return true
         }
         
