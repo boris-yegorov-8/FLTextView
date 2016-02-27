@@ -353,7 +353,7 @@ extension FLTextView: UITextViewDelegate {
     
     public func textView(textView: UITextView, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
         
-        let isDeletedSymbol = range.length == 1 && text == ""
+        let isDeletedSymbol = text.isEmpty
         
         guard let frozenText = frozenPrefix where textView != placeholderView else {
             
