@@ -210,6 +210,15 @@ public class FLTextView: UITextView {
         setupPlaceholderView()
     }
     
+    public override func isFirstResponder() -> Bool {
+        
+        if placeholderView.isFirstResponder() {
+            return true
+        } else {
+            return super.isFirstResponder()
+        }
+    }
+    
     public override func becomeFirstResponder() -> Bool {
         if isShowingPlaceholder && placeholderView.isFirstResponder() {
             return false
@@ -218,6 +227,14 @@ public class FLTextView: UITextView {
             return super.becomeFirstResponder()
         }
         
+    }
+    
+    public override func resignFirstResponder() -> Bool {
+        if placeholderView.isFirstResponder() {
+            return placeholderView.resignFirstResponder()
+        } else {
+            return super.resignFirstResponder()
+        }
     }
     
     deinit {
