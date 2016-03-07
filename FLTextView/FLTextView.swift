@@ -396,7 +396,8 @@ extension FLTextView: UITextViewDelegate {
         let intersection = NSIntersectionRange(protectedRange, range)
         
         let frozenTextLength = frozenText.characters.count
-        let shouldClearFrozenText = isDeletedSymbol && (textView.text.characters.count == frozenTextLength + 1 || (range.location == frozenTextLength && (textView.text.characters.count - range.length == frozenTextLength))) && intersection.location == 0 && intersection.length == 0
+        let lengthOfTextForRange = (textView.text as NSString).length
+        let shouldClearFrozenText = isDeletedSymbol && (textView.text.characters.count == frozenTextLength + 1 || (range.location == frozenTextLength && (lengthOfTextForRange - range.length == frozenTextLength))) && intersection.location == 0 && intersection.length == 0
         
         if shouldClearFrozenText {
             textView.text = text
