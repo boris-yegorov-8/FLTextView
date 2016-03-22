@@ -411,7 +411,7 @@ extension FLTextView: UITextViewDelegate {
             return true
         }
         
-        if intersection.length > 0 || intersection.location > 0 {
+        if intersection.length > 0 || intersection.location > 0  || NSLocationInRange(range.location, protectedRange){
             
             return false
         }
