@@ -316,8 +316,15 @@ public class FLTextView: UITextView {
     }
     
     private func moveCursorAfterFrozenTextIfPossibleInMainTextView() {
-        if let frozenText = frozenPrefix where !NSEqualRanges(selectedRange, NSMakeRange(frozenText.characters.count, 0)) && selectedRange.length == 0 && selectedRange.location <= frozenText.characters.count && !(NSEqualRanges(selectedRange, NSMakeRange(0, 0)) && text.characters.count == 0) {
+        guard let frozenText = frozenPrefix else {
+            return
+        }
+        
+        let allTextSelected = selectedRange.length == attributedText.length && selectedRange.location == 0 && selectedRange.length > frozenText.characters.count
+        if !NSEqualRanges(selectedRange, NSMakeRange(frozenText.characters.count, 0)) && selectedRange.length == 0 && selectedRange.location <= frozenText.characters.count && !(NSEqualRanges(selectedRange, NSMakeRange(0, 0)) && text.characters.count == 0) {
             selectedRange = NSMakeRange(frozenText.characters.count, 0)
+        } else if allTextSelected {
+            selectedRange = NSMakeRange(frozenText.characters.count, attributedText.length  - frozenText.characters.count)
         }
     }
     
