@@ -315,6 +315,12 @@ public class FLTextView: UITextView {
         }
     }
     
+    private func moveCursorAfterFrozenTextIfPossibleInMainTextView() {
+        if let frozenText = frozenPrefix where !NSEqualRanges(selectedRange, NSMakeRange(frozenText.characters.count, 0)) && selectedRange.length == 0 && selectedRange.location <= frozenText.characters.count && !(NSEqualRanges(selectedRange, NSMakeRange(0, 0)) && text.characters.count == 0) {
+            selectedRange = NSMakeRange(frozenText.characters.count, 0)
+        }
+    }
+    
     private func placeholderSize() -> CGSize {
         var maxSize = self.bounds.size
         maxSize.height = CGFloat.max
@@ -342,6 +348,7 @@ public class FLTextView: UITextView {
             text = nil
             attributedText = attributedString
         } else if isAttributedStringNeed {
+            let storedSelectedRange = selectedRange
             let mutableAttributedString = attrText.mutableCopy() as! NSMutableAttributedString
             let attrs = [NSFontAttributeName :stroredTextFont ?? defaultTextFont, NSForegroundColorAttributeName: stroredTextColor ?? defaultTextColor, NSParagraphStyleAttributeName : paragraphStyle]
             let rangeOfNonFrozenText = NSMakeRange(frozenText.characters.count, mutableAttributedString.length - frozenText.characters.count)
@@ -350,6 +357,7 @@ public class FLTextView: UITextView {
             let rangeOfFrozenText =  NSMakeRange(0, frozenText.characters.count)
             mutableAttributedString.addAttributes(attrsFrozen, range: rangeOfFrozenText)
             attributedText = mutableAttributedString
+            selectedRange = storedSelectedRange
         }
     }
     
@@ -382,14 +390,14 @@ extension FLTextView: UITextViewDelegate {
                     placeholderView.resignFirstResponder()
                     self.text = frozenText + text
                     becomeFirstResponder()
-                    if isExternalTextViewDelegateRespondsToSelector("textViewDidChange:") {
+                    if isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidChange(_:))) {
                         externalTextViewDelegate!.textViewDidChange!(self)
                     }
                     return false
                 }
             }
             
-            return isExternalTextViewDelegateRespondsToSelector("textView:shouldChangeTextInRange:replacementText:") ? externalTextViewDelegate!.textView!(textView, shouldChangeTextInRange: range, replacementText: text) : true
+            return isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textView(_:shouldChangeTextInRange:replacementText:))) ? externalTextViewDelegate!.textView!(textView, shouldChangeTextInRange: range, replacementText: text) : true
         }
         
         let protectedRange = NSMakeRange(0, frozenText.characters.count)
@@ -416,7 +424,7 @@ extension FLTextView: UITextViewDelegate {
             return false
         }
         
-        return isExternalTextViewDelegateRespondsToSelector("textView:shouldChangeTextInRange:replacementText:") ? externalTextViewDelegate!.textView!(textView, shouldChangeTextInRange: range, replacementText: text) : true
+        return isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textView(_:shouldChangeTextInRange:replacementText:))) ? externalTextViewDelegate!.textView!(textView, shouldChangeTextInRange: range, replacementText: text) : true
     }
     
     public func textViewDidChange(textView: UITextView) {
@@ -429,49 +437,56 @@ extension FLTextView: UITextViewDelegate {
             return
         }
         showPlaceholderViewIfNeeded()
-        if isExternalTextViewDelegateRespondsToSelector("textViewDidChange:") {
+        if isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidChange(_:))) {
             externalTextViewDelegate!.textViewDidChange!(textView)
         }
         applyStylesForFrozenText()
     }
     
     public func textViewShouldBeginEditing(textView: UITextView) -> Bool {
-        guard isExternalTextViewDelegateRespondsToSelector("textViewShouldBeginEditing:") else { return true}
+        guard isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewShouldBeginEditing(_:))) else { return true}
         return externalTextViewDelegate!.textViewShouldBeginEditing!(textView)
     }
     
     public func textViewShouldEndEditing(textView: UITextView) -> Bool {
-        guard isExternalTextViewDelegateRespondsToSelector("textViewShouldEndEditing:") else { return true }
+        guard isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewShouldEndEditing(_:))) else { return true }
         return externalTextViewDelegate!.textViewShouldEndEditing!(textView)
     }
     
     public func textViewDidBeginEditing(textView: UITextView) {
-        guard isExternalTextViewDelegateRespondsToSelector("textViewDidBeginEditing:") else { return }
+        guard isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidBeginEditing(_:))) else { return }
         externalTextViewDelegate!.textViewDidBeginEditing!(textView)
     }
     
     public func textViewDidEndEditing(textView: UITextView) {
-        guard isExternalTextViewDelegateRespondsToSelector("textViewDidEndEditing:") else { return }
+        guard isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidEndEditing(_:))) else { return }
         externalTextViewDelegate!.textViewDidEndEditing!(textView)
     }
     
     public func textViewDidChangeSelection(textView: UITextView) {
-        guard textView != placeholderView && isExternalTextViewDelegateRespondsToSelector("textViewDidChangeSelection:") else {
+        guard textView != placeholderView && isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidChangeSelection(_:))) else {
             if let frozenText = frozenPrefix where textView == placeholderView && !NSEqualRanges(textView.selectedRange, NSMakeRange(frozenText.characters.count, 0)) {
-                moveCursorAfterFrozenTextIfPossible()
+                    moveCursorAfterFrozenTextIfPossible()
+            } else if textView == self {
+                moveCursorAfterFrozenTextIfPossibleInMainTextView()
             }
             return
         }
+        
+        if textView == self {
+            moveCursorAfterFrozenTextIfPossibleInMainTextView()
+        }
+        
         externalTextViewDelegate!.textViewDidChangeSelection!(textView)
     }
     
     public func textView(textView: UITextView, shouldInteractWithURL URL: NSURL, inRange characterRange: NSRange) -> Bool {
-        guard isExternalTextViewDelegateRespondsToSelector("textView:shouldInteractWithURL:inRange:") else { return true }
+        guard isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textView(_:shouldInteractWithURL:inRange:))) else { return true }
         return externalTextViewDelegate!.textView!(textView, shouldInteractWithURL: URL, inRange: characterRange)
     }
     
     public func textView(textView: UITextView, shouldInteractWithTextAttachment textAttachment: NSTextAttachment, inRange characterRange: NSRange) -> Bool {
-        guard isExternalTextViewDelegateRespondsToSelector("textView:shouldInteractWithTextAttachment:inRange:") else { return true }
+        guard isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textView(_:shouldInteractWithTextAttachment:inRange:))) else { return true }
         return externalTextViewDelegate!.textView!(textView, shouldInteractWithTextAttachment: textAttachment, inRange: characterRange)
     }
     
