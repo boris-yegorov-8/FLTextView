@@ -395,8 +395,8 @@ extension FLTextView: UITextViewDelegate {
                 if let frozenText = frozenPrefix where placeholderView.isFirstResponder() {
                     placeholderView.userInteractionEnabled = false
                     placeholderView.resignFirstResponder()
-                    self.text = frozenText + text
                     becomeFirstResponder()
+                    self.text = frozenText + text
                     if isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidChange(_:))) {
                         externalTextViewDelegate!.textViewDidChange!(self)
                     }
