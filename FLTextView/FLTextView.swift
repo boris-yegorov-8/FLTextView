@@ -399,6 +399,7 @@ extension FLTextView: UITextViewDelegate {
                     self.text = frozenText + text
                     if isExternalTextViewDelegateRespondsToSelector(#selector(UITextViewDelegate.textViewDidChange(_:))) {
                         externalTextViewDelegate!.textViewDidChange!(self)
+                        applyStylesForFrozenText()
                     }
                     return false
                 }
